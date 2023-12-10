@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
-    //public float thrust;
     public float thrustMultiplier = 0.1f;
     public float yawMultiplier = 0.1f;
     public float pitchMultiplier = 0.1f;
@@ -31,8 +31,21 @@ public class PlayerController : MonoBehaviour
     //Propeller propeller;
     [SerializeField] TextMeshProUGUI stats;
     [SerializeField] Transform propeller;
+    [SerializeField] CinemachineVirtualCamera thirdPersonCam;
+    [SerializeField] CinemachineVirtualCamera lookBackCam;
 
-    public CameraManager cameraManager;
+    private void OnEnable()
+    {
+        CameraManager.Register(thirdPersonCam);
+        CameraManager.Register(lookBackCam);
+        CameraManager.SwitchCamera(thirdPersonCam);
+    }
+
+    private void OnDisable()
+    {
+        CameraManager.Unregister(thirdPersonCam);
+        CameraManager.Unregister(lookBackCam);
+    }
 
     private void Awake()
     {
@@ -64,15 +77,18 @@ public class PlayerController : MonoBehaviour
         UpdateHUD();
 
         propeller.Rotate(Vector3.right * thrust);
-        //engineSound.volume = thrust * 0.01f;
+        engineSound.volume = thrust * 0.01f;
 
         if (Input.GetKeyDown(KeyCode.C))
         {
-            cameraManager.SwitchCamera(cameraManager.thirdPersonCamera);
-        }
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            cameraManager.SwitchCamera(cameraManager.lookBackCamera);
+            if (CameraManager.IsActiveCamera(thirdPersonCam))
+            {
+                CameraManager.SwitchCamera(lookBackCam);
+            }
+            else if (CameraManager.IsActiveCamera(lookBackCam))
+            {
+                CameraManager.SwitchCamera(thirdPersonCam);
+            }
         }
     }
 

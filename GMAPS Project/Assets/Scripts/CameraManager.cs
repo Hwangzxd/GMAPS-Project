@@ -3,46 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 
-public class CameraManager : MonoBehaviour
+public static class CameraManager
 {
-    public CinemachineVirtualCamera[] cameras;
+    static List<CinemachineVirtualCamera> cameras = new List<CinemachineVirtualCamera>();
 
-    public CinemachineVirtualCamera thirdPersonCamera;
-    public CinemachineVirtualCamera topDownCamera;
-    public CinemachineVirtualCamera lookBackCamera;
+    public static CinemachineVirtualCamera ActiveCamera = null;
 
-    public CinemachineVirtualCamera startCamera;
-    private CinemachineVirtualCamera currentCamera;
-
-    private void Start()
+    public static bool IsActiveCamera(CinemachineVirtualCamera camera)
     {
-        currentCamera = startCamera;
+        return camera == ActiveCamera;
+    }
 
-        for (int i = 0; i < cameras.Length; i++)
+    public static void SwitchCamera(CinemachineVirtualCamera camera)
+    {
+        camera.Priority = 10;
+        ActiveCamera = camera;
+
+        foreach (CinemachineVirtualCamera c in cameras)
         {
-            if (cameras[i] == currentCamera)
+            if (c != camera && c.Priority != 0)
             {
-                cameras[i].Priority = 20;
-            }
-            else
-            {
-                cameras[i].Priority = 10;
+                c.Priority = 0;
             }
         }
     }
 
-    public void SwitchCamera(CinemachineVirtualCamera newCamera)
+    public static void Register(CinemachineVirtualCamera camera)
     {
-        currentCamera = newCamera;
+        cameras.Add(camera);
+    }
 
-        currentCamera.Priority = 20;
-
-        for (int i = 0; i < cameras.Length; i++)
-        {
-            if (cameras[i] != currentCamera)
-            {
-                cameras[i].Priority = 10;
-            }
-        }
+    public static void Unregister(CinemachineVirtualCamera camera)
+    {
+        cameras.Remove(camera);
     }
 }
