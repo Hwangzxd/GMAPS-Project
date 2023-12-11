@@ -3,20 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Cinemachine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
-    public float thrustMultiplier = 0.1f;
-    public float yawMultiplier = 0.1f;
-    public float pitchMultiplier = 0.1f;
+    [SerializeField] TextMeshProUGUI stats;
+    [SerializeField] CinemachineVirtualCamera thirdPersonCam;
+    [SerializeField] CinemachineVirtualCamera lookBackCam;
+
+    public float throttleIncrement = 0.1f;
     public float maxThrust = 200f;
-    public float sensitivity = 10f;
+    public float sensitivity = 200f;
     public float lift = 135f;
 
-    private float thrust;
+    private float throttle;
     private float roll;
     private float pitch;
     private float yaw;
+
+    //bool brake = false;
 
     private float sensitivityModifier
     {
@@ -28,11 +33,7 @@ public class PlayerController : MonoBehaviour
 
     Rigidbody rb;
     AudioSource engineSound;
-    //Propeller propeller;
-    [SerializeField] TextMeshProUGUI stats;
-    [SerializeField] Transform propeller;
-    [SerializeField] CinemachineVirtualCamera thirdPersonCam;
-    [SerializeField] CinemachineVirtualCamera lookBackCam;
+    Propeller propeller;
 
     private void OnEnable()
     {
@@ -51,7 +52,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         engineSound = GetComponent<AudioSource>();
-        //propeller = FindObjectOfType<Propeller>();
+        propeller = FindObjectOfType<Propeller>();
     }
 
     private void HandleInputs()
@@ -60,15 +61,22 @@ public class PlayerController : MonoBehaviour
         pitch = Input.GetAxis("Vertical");
         yaw = Input.GetAxis("Yaw");
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space))
         {
-            thrust += thrustMultiplier;
+            throttle += throttleIncrement;
         }
-        else if (Input.GetKeyDown(KeyCode.LeftShift))
+        else if (Input.GetKey(KeyCode.LeftShift))
         {
-            thrust -= thrustMultiplier;
+            throttle -= throttleIncrement;
         }
-        thrust = Mathf.Clamp(thrust, 0f, 100f);
+        throttle = Mathf.Clamp(throttle, 0f, 100f);
+
+        propeller.speed = throttle * 50f;
+
+        //if (Input.GetKeyDown(KeyCode.B))
+        //{
+        //    brake = !brake;
+        //}
     }
 
     private void Update()
@@ -76,8 +84,15 @@ public class PlayerController : MonoBehaviour
         HandleInputs();
         UpdateHUD();
 
-        propeller.Rotate(Vector3.right * thrust);
-        engineSound.volume = thrust * 0.01f;
+        if (engineSound.volume < 0.2f)
+        {
+            engineSound.volume = throttle * 0.01f;
+        }
+        
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(1);
+        }
 
         if (Input.GetKeyDown(KeyCode.C))
         {
@@ -102,8 +117,7 @@ public class PlayerController : MonoBehaviour
         //rb.AddRelativeTorque(pitch * pitchMultiplier * Time.deltaTime,
         //yaw * yawMultiplier * Time.deltaTime, -yaw * yawMultiplier * 2 * Time.deltaTime);
 
-        rb.AddForce(transform.forward * maxThrust * thrust);
-        engineSound.volume = thrust * 0.01f;
+        rb.AddForce(transform.forward * maxThrust * throttle);
         rb.AddTorque(transform.right * pitch * sensitivityModifier);
         rb.AddTorque(-transform.forward * roll * sensitivityModifier);
         rb.AddTorque(transform.up * yaw * sensitivityModifier);
@@ -111,9 +125,31 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(Vector3.up * rb.velocity.magnitude * lift);
     }
 
+    //public void Brake(bool isBraking) //increases drag on wheels
+    //{
+    //    //add drag on wheels
+    //    SphereCollider[] wheels = FindObjectsOfType<SphereCollider>();
+
+    //    //change based on isBraking
+    //    float friction;
+    //    if (isBraking)
+    //    {
+    //        friction = 0.2f;
+    //    }
+    //    else
+    //    {
+    //        friction = 0f;
+    //    }
+
+    //    foreach (SphereCollider wheel in wheels)
+    //    {
+    //        wheel.material.dynamicFriction = friction;
+    //    }
+    //}
+
     private void UpdateHUD()
     {
-        stats.text = "Thrust: " + thrust.ToString("F0") + "%\n"
+        stats.text = "Throttle: " + throttle.ToString("F0") + "%\n"
             + "Airspeed: " + (rb.velocity.magnitude * 3.6f).ToString("F0") + "km/h\n"
             + "Altitude: " + transform.position.y.ToString("F0") + "m";
     }

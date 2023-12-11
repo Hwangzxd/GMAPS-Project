@@ -13,7 +13,7 @@ public class Radio : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.M))
         {
             if (audioSource.isPlaying)
             {
