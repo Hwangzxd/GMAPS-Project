@@ -21,8 +21,6 @@ public class PlayerController : MonoBehaviour
     private float pitch;
     private float yaw;
 
-    //bool brake = false;
-
     private float sensitivityModifier
     {
         get
@@ -72,11 +70,6 @@ public class PlayerController : MonoBehaviour
         throttle = Mathf.Clamp(throttle, 0f, 100f);
 
         propeller.speed = throttle * 50f;
-
-        //if (Input.GetKeyDown(KeyCode.B))
-        //{
-        //    brake = !brake;
-        //}
     }
 
     private void Update()
@@ -109,14 +102,6 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //float pitch = Input.GetAxis("Vertical");
-        //float yaw = Input.GetAxis("Horizontal");
-
-        //rb.AddRelativeForce(0f, 0f, thrust * thrustMultiplier * Time.deltaTime);
-        //propeller.speed = thrustMultiplier * 1500f;
-        //rb.AddRelativeTorque(pitch * pitchMultiplier * Time.deltaTime,
-        //yaw * yawMultiplier * Time.deltaTime, -yaw * yawMultiplier * 2 * Time.deltaTime);
-
         rb.AddForce(transform.forward * maxThrust * throttle);
         rb.AddTorque(transform.right * pitch * sensitivityModifier);
         rb.AddTorque(-transform.forward * roll * sensitivityModifier);
@@ -124,28 +109,6 @@ public class PlayerController : MonoBehaviour
 
         rb.AddForce(Vector3.up * rb.velocity.magnitude * lift);
     }
-
-    //public void Brake(bool isBraking) //increases drag on wheels
-    //{
-    //    //add drag on wheels
-    //    SphereCollider[] wheels = FindObjectsOfType<SphereCollider>();
-
-    //    //change based on isBraking
-    //    float friction;
-    //    if (isBraking)
-    //    {
-    //        friction = 0.2f;
-    //    }
-    //    else
-    //    {
-    //        friction = 0f;
-    //    }
-
-    //    foreach (SphereCollider wheel in wheels)
-    //    {
-    //        wheel.material.dynamicFriction = friction;
-    //    }
-    //}
 
     private void UpdateHUD()
     {
