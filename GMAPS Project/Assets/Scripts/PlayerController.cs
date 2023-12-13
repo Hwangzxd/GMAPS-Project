@@ -16,6 +16,9 @@ public class PlayerController : MonoBehaviour
     public float sensitivity = 200f;
     public float lift = 135f;
 
+    public float minVolume = 0f;
+    public float maxVolume = 0.2f;
+
     private float throttle;
     private float roll;
     private float pitch;
@@ -61,12 +64,15 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Space))
         {
-            throttle += throttleIncrement;
+            IncreaseThrottle();
         }
         else if (Input.GetKey(KeyCode.LeftShift))
         {
-            throttle -= throttleIncrement;
+            DecreaseThrottle();
         }
+
+        engineSound.volume = Mathf.Clamp(throttle * 0.01f, minVolume, maxVolume);
+
         throttle = Mathf.Clamp(throttle, 0f, 100f);
 
         propeller.speed = throttle * 50f;
@@ -77,11 +83,6 @@ public class PlayerController : MonoBehaviour
         HandleInputs();
         UpdateHUD();
 
-        if (engineSound.volume < 0.2f)
-        {
-            engineSound.volume = throttle * 0.01f;
-        }
-        
         if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(1);
@@ -102,12 +103,27 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Apply forward force to the plane
         rb.AddForce(transform.forward * maxThrust * throttle);
+        // Apply rotational force on the x-axis to turn the plane up and down
         rb.AddTorque(transform.right * pitch * sensitivityModifier);
+        // Apply rotational force on the z-axis to roll the plane left and right
         rb.AddTorque(-transform.forward * roll * sensitivityModifier);
+        // Apply rotational force on the y-axis to turn the plane left and right
         rb.AddTorque(transform.up * yaw * sensitivityModifier);
 
+        // Apply upward force to lift the plane upwards
         rb.AddForce(Vector3.up * rb.velocity.magnitude * lift);
+    }
+
+    void IncreaseThrottle()
+    {
+        throttle += throttleIncrement;
+    }
+
+    void DecreaseThrottle()
+    {
+        throttle -= throttleIncrement;
     }
 
     private void UpdateHUD()
